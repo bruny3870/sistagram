@@ -1,5 +1,5 @@
 # SpringMVC Project - Sistagram
-스프링MVC + JSP 소셜네트워크(SNS) 사이트
+스프링MVC 소셜네트워크(SNS) 사이트
 
 ## 프로젝트 소개
 - 소셜네트워크(SNS) 인스타그램을 참고하여 만든 사이트 입니다.
