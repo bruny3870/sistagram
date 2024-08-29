@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.sist.web.dao.FollDao">
+	
+	<resultMap type="com.sist.web.model.Foll" id="follResultMap">
+		<id column="FOLL_NUM" property="follNum" />
+		<result column="TO_USER" property="toUser" />
+		<result column="FROM_USER" property="fromUser" />
+		<result column="FILE_NAME" property="fileName" />
+		<result column="USER_NAME" property="userName" />
+	</resultMap>
+	
+	<insert id="follInsert" parameterType="com.sist.web.model.Foll">
+		<selectKey resultType="long" keyProperty="follNum" order="BEFORE">
+			SELECT INS_FOLL_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		
+		INSERT INTO INS_FOLL (
+			FOLL_NUM,
+			TO_USER,
+			FROM_USER
+		) VALUES (
+			#{follNum},
+			#{toUser},
+			#{fromUser}
+			)
+	</insert>
+	
+	<delete id="follDelete" parameterType="com.sist.web.model.Foll">
+		DELETE INS_FOLL
+		WHERE TO_USER = #{toUser}
+		AND FROM_USER = #{fromUser}
+	</delete>
+	
+	<!-- 팔로워 -->
+	<select id="follList1" parameterType="String" resultMap="follResultMap">
+		SELECT F.FROM_USER, 
+		        NVL(U.USER_NAME, '') USER_NAME,
+		        NVL(UF.FILE_NAME, '') FILE_NAME
+		FROM INS_USER U, INS_USER_FILE UF, INS_FOLL F
+		WHERE U.USER_ID = F.FROM_USER
+		AND U.USER_ID = UF.USER_ID(+)
+		AND F.TO_USER = #{userId}
+	</select>
+	
+	<!-- 팔로잉 -->
+	<select id="follList2" parameterType="String" resultMap="follResultMap">
+		SELECT F.TO_USER, 
+		        NVL(U.USER_NAME, '') USER_NAME,
+		        NVL(UF.FILE_NAME, '') FILE_NAME
+		FROM INS_USER U, INS_USER_FILE UF, INS_FOLL F
+		WHERE U.USER_ID = F.TO_USER
+		AND U.USER_ID = UF.USER_ID(+)
+		AND F.FROM_USER = #{userId}
+	</select>
+	
+	<!-- 팔로워 수 -->
+	<select id="follCnt1" parameterType="com.sist.web.model.Foll" resultType="long">
+		SELECT COUNT(*) CNT
+		FROM INS_FOLL
+		WHERE TO_USER = #{userId}
+	</select>
+	
+	<!-- 팔로잉 수 -->
+	<select id="follCnt2" parameterType="com.sist.web.model.Foll" resultType="long">
+		SELECT COUNT(*) CNT
+		FROM INS_FOLL
+		WHERE FROM_USER = #{userId}
+	</select>
+	
+</mapper>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.sist.web.dao.CommentDao">
+
+	<resultMap type="com.sist.web.model.Comment" id="commentResultMap">
+		<id column="COMMENT_NUM" property="commentNum" />
+		<result column="BOARD_NUM" property="boardNum" />
+		<result column="USER_ID" property="userId" />
+		<result column="COMMENT_CONTENT" property="commentContent" />
+		<result column="COMMENT_GROUP" property="commentGroup" />
+		<result column="COMMENT_PARENT" property="commentParent" />
+		<result column="STATUS" property="status" />
+		<result column="REG_DATE" property="regDate" />
+		<result column="FILE_NAME" property="fileName" />
+	</resultMap>
+	
+	<select id="commentSelect" parameterType="long" resultMap="commentResultMap">
+		SELECT C.COMMENT_NUM,
+		    C.BOARD_NUM,
+		    NVL(C.USER_ID, '') USER_ID,
+		    NVL(C.COMMENT_CONTENT, '') COMMENT_CONTENT,
+		    NVL(C.COMMENT_GROUP, 0) COMMENT_GROUP,
+		    NVL(C.COMMENT_PARENT, 0) COMMENT_PARENT,
+		    NVL(C.STATUS, '') STATUS,
+		    NVL(TO_CHAR(C.REG_DATE, 'YYYY.MM.DD'), '') REG_DATE,
+		    NVL(UF.FILE_NAME, '') FILE_NAME
+		FROM INS_COMMENT C, INS_USER_FILE UF
+		WHERE C.USER_ID = UF.USER_ID(+)
+		AND C.BOARD_NUM = ${value}
+		ORDER BY COMMENT_GROUP DESC
+	</select>
+
+	<insert id="commentInsert" parameterType="com.sist.web.model.Comment">
+		<selectKey resultType="long" keyProperty="commentNum" order="BEFORE">
+			SELECT INS_COMMENT_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		
+		INSERT INTO INS_COMMENT (
+		    COMMENT_NUM,
+		    BOARD_NUM,
+		    USER_ID,
+		    COMMENT_CONTENT,
+		    COMMENT_GROUP,
+		    COMMENT_PARENT,
+		    STATUS,
+		    REG_DATE)
+		VALUES (
+		    #{commentNum},
+		    #{boardNum},
+		    #{userId},
+		    #{commentContent},
+		    #{commentGroup},
+		    #{commentParent},
+		    #{status},
+		    SYSDATE)
+	</insert>
+	
+	<select id="commentCount" parameterType="long">
+		SELECT COUNT(BOARD_NUM) CNT
+		FROM INS_COMMENT
+		WHERE BOARD_NUM = #{value}
+	</select>
+	
+</mapper>

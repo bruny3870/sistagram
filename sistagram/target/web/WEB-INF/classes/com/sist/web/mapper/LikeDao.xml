@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.sist.web.dao.LikeDao">
+
+	<resultMap type="com.sist.web.model.Like" id="likeResultMap">
+		<id column="LIKE_NUM" property="likeNum" />
+		<result column="BOARD_NUM" property="boardNum" />
+		<result column="COMMENT_NUM" property="commentNum" />
+		<result column="USER_ID" property="userId" />
+	</resultMap>
+
+	<select id="likeSelect">
+		SELECT COUNT(BOARD_NUM) CNT
+		FROM INS_LIKE
+		WHERE USER_ID = #{value}
+		AND BOARD_NUM = #{value}
+	</select>
+	
+	<select id="likeCount" parameterType="com.sist.web.model.Like" resultType="long">
+		SELECT COUNT(BOARD_NUM) CNT
+		FROM INS_LIKE
+		WHERE BOARD_NUM = #{value}
+	</select>
+	
+	<insert id="likeInsert" parameterType="com.sist.web.model.Like">
+		<selectKey resultType="long" keyProperty="likeNum" order="BEFORE">
+			SELECT INS_LIKE_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO INS_LIKE (
+		    LIKE_NUM,
+		    BOARD_NUM,
+		    USER_ID)
+		VALUES (
+		    #{likeNum},
+		    #{boardNum},
+		    #{userId})
+	</insert>
+</mapper>

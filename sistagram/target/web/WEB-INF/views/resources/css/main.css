@@ -1,0 +1,17 @@
+	    /* 기본 버튼 스타일 */
+		.nav_bar {
+			cursor: pointer;
+			border-radius: 5px; /* 둥근 모서리 */
+			transition: background-color 0.3s ease; /* 변화가 부드럽게 일어나도록 설정 */
+			display: flex; /* 플렉스 컨테이너로 설정 */
+		}
+	
+		/* 마우스 호버 시의 버튼 스타일 */
+		.nav_bar:hover {
+			background-color: #dbdbdb; /* 호버 시 배경색 (옅은 회색) */
+		}
+		
+		/* textarea 테두리 */
+		textarea:focus {
+		  outline: none;
+		}

@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.sist.web.dao.BoardDao">
+
+	<!-- 게시물 -->
+	<resultMap type="com.sist.web.model.Board" id="boardResultMap">
+		<id column="BOARD_NUM" property="boardNum" />
+		<result column="USER_ID" property="userId" />
+		<result column="USER_NAME" property="userName" />
+		<result column="BOARD_CONTENT" property="boardContent" />
+		<result column="LIKE_CNT" property="likeCnt" />
+		<result column="REG_DATE" property="regDate" />
+		<result column="FILE_NAME" property="fileName" />
+		<result column="UFILE_NAME" property="ufileName" />
+	</resultMap>
+	
+	<!-- 첨부파일 -->
+	<resultMap type="com.sist.web.model.BoardFile" id="boardFileResultMap">
+		<id column="BOARD_NUM" property="boardNum" />
+		<id column="FILE_NUM" property="fileNum" />
+		<result column="FILE_ORG_NAME" property="fileOrgName" />
+		<result column="FILE_NAME" property="fileName" />
+		<result column="FILE_EXT" property="fileExt" />
+		<result column="FILE_SIZE" property="fileSize" />
+		<result column="REG_DATE" property="regDate" />
+	</resultMap>
+	
+	<!-- 게시물 리스트 -->
+	<select id="boardList" parameterType="com.sist.web.model.Board" resultMap="boardResultMap">
+	SELECT BOARD_NUM, USER_ID, USER_NAME, BOARD_CONTENT, LIKE_CNT, REG_DATE, FILE_NAME, UFILE_NAME
+	FROM (SELECT ROWNUM AS RNUM, BOARD_NUM, USER_ID, USER_NAME, BOARD_CONTENT, LIKE_CNT, REG_DATE, FILE_NAME, UFILE_NAME
+	        FROM (SELECT B.BOARD_NUM,
+	                B.USER_ID,
+	                NVL(U.USER_NAME, '') USER_NAME,
+	                NVL(B.BOARD_CONTENT, '') BOARD_CONTENT,
+	                NVL(B.LIKE_CNT, 0) LIKE_CNT,
+	                NVL(TO_CHAR(B.REG_DATE, 'YYYY.MM.DD'), '') REG_DATE,
+	                NVL(BF.FILE_NAME, '') FILE_NAME,
+	                NVL(UF.FILE_NAME, '') UFILE_NAME
+	                FROM INS_BOARD B, INS_USER U, INS_BOARD_FILE BF, INS_USER_FILE UF
+	                WHERE B.USER_ID = U.USER_ID
+	                AND B.BOARD_NUM = BF.BOARD_NUM
+	                AND BF.FILE_NUM = 1
+	                AND U.USER_ID = UF.USER_ID(+)
+	                ORDER BY BOARD_NUM DESC))
+		WHERE RNUM <![CDATA[>=]]> 1
+		AND RNUM <![CDATA[<=]]> 10
+	</select>
+	
+	<!-- 게시물 수 -->
+	<select id="boardListCount" parameterType="com.sist.web.model.Board" resultType="long">
+		SELECT COUNT(B.BOARD_NUM) CNT
+		FROM INS_BOARD B, INS_USER U
+		WHERE B.USER_ID = U.USER_ID
+	</select>
+	
+	<!-- 게시물 등록 -->
+	<insert id="boardInsert" parameterType="com.sist.web.model.Board">
+		<!-- 시퀸스 -->
+		<selectKey resultType="long" keyProperty="boardNum" order="BEFORE">
+			SELECT INS_BOARD_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		<!-- 쿼리 -->
+		INSERT INTO INS_BOARD (
+		    BOARD_NUM,
+		    USER_ID,
+		    BOARD_CONTENT,
+		    LIKE_CNT,
+		    REG_DATE)
+		VALUES (
+		    #{boardNum},
+		    #{userId},
+		    #{boardContent},
+		    0,
+		    SYSDATE)
+	</insert>
+	
+	<!-- 첨부파일 등록 -->
+	<insert id="boardFileInsert" parameterType="com.sist.web.model.BoardFile">
+		INSERT INTO INS_BOARD_FILE (
+		    BOARD_NUM,
+		    FILE_NUM,
+		    FILE_ORG_NAME,
+		    FILE_NAME,
+		    FILE_EXT,
+		    FILE_SIZE,
+		    REG_DATE)
+		VALUES (
+		    #{boardNum},
+		    #{fileNum},
+		    #{fileOrgName},
+		    #{fileName},
+		    #{fileExt},
+		    #{fileSize},
+		    SYSDATE)
+	</insert>
+	
+	<!-- 게시물 상세 -->
+	<select id="boardSelect" parameterType="long" resultMap="boardResultMap">
+		SELECT B.BOARD_NUM,
+		    B.USER_ID,
+		    NVL(U.USER_NAME, '') USER_NAME,
+		    NVL(B.BOARD_CONTENT, '') BOARD_CONTENT,
+		    NVL(B.LIKE_CNT, 0) LIKE_CNT,
+		    NVL(TO_CHAR(B.REG_DATE, 'YYYY.MM.DD'), '') REG_DATE,
+		    NVL(BF.FILE_NAME, '') FILE_NAME,
+		    NVL(UF.FILE_NAME, '') UFILE_NAME
+		FROM INS_BOARD B, INS_USER U, INS_BOARD_FILE BF, INS_USER_FILE UF
+		WHERE B.USER_ID = U.USER_ID
+		AND B.BOARD_NUM = BF.BOARD_NUM
+		AND U.USER_ID = UF.USER_ID(+)
+		AND BF.FILE_NUM = 1
+		AND B.BOARD_NUM = #{value}
+	</select>
+	
+	<!-- 첨부파일 조회 -->
+	<select id="boardFileSelect" parameterType="long" resultMap="boardFileResultMap">
+		SELECT BOARD_NUM,
+		    FILE_NUM,
+		    NVL(FILE_ORG_NAME, '') FILE_ORG_NAME,
+		    NVL(FILE_NAME, '') FILE_NAME,
+		    NVL(FILE_EXT, '') FILE_EXT,
+		    NVL(FILE_SIZE, 0) FILE_SIZE,
+		    NVL(TO_CHAR(REG_DATE, 'YYYY.MM.DD'), '') REG_DATE
+		FROM INS_BOARD_FILE
+		WHERE BOARD_NUM = #{value}
+	</select>
+	
+	<!-- 게시물 수정 -->
+	<update id="boardUpdate" parameterType="com.sist.web.model.Board">
+		UPDATE INS_BOARD
+		SET BOARD_CONTENT = #{boardContent}
+		WHERE BOARD_NUM = #{boardNum}
+	</update>
+	
+	<!-- 첨부파일 삭제 -->
+	<delete id="boardFileDelete" parameterType="long">
+		DELETE FROM INS_BOARD_FILE
+		WHERE BOARD_NUM = #{value}
+	</delete>
+	
+	<!-- 게시물 삭제 -->
+	<delete id="boardDelete" parameterType="long">
+		DELETE FROM INS_BOARD
+		WHERE BOARD_NUM = #{value}
+	</delete>
+	
+	<!-- 회원 게시물 -->
+	<select id="boardUserSelect" parameterType="String" resultMap="boardResultMap">
+		SELECT B.BOARD_NUM,
+		    B.USER_ID,
+		    NVL(U.USER_NAME, '') USER_NAME,
+		    NVL(B.BOARD_CONTENT, '') BOARD_CONTENT,
+		    NVL(B.LIKE_CNT, 0) LIKE_CNT,
+		    NVL(TO_CHAR(B.REG_DATE, 'YYYY.MM.DD'), '') REG_DATE,
+		    NVL(BF.FILE_NAME, '') FILE_NAME
+		FROM INS_BOARD B, INS_USER U, INS_BOARD_FILE BF
+		WHERE B.USER_ID = U.USER_ID
+		AND B.BOARD_NUM = BF.BOARD_NUM
+		AND BF.FILE_NUM = 1
+		AND B.USER_ID = #{value}
+		ORDER BY BOARD_NUM DESC
+	</select>
+	
+	<!-- 회원 게시물 수 -->
+	<select id="boardUserSelectCount" parameterType="String" resultType="long">
+		SELECT COUNT(B.BOARD_NUM) CNT
+		FROM INS_BOARD B, INS_USER U
+		WHERE B.USER_ID = U.USER_ID
+		AND B.USER_ID = #{value}
+	</select>
+	
+</mapper>
