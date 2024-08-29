@@ -1,4 +1,4 @@
-# SpringMVC Project - Sistagram
+# SpringMVC Project - sistagram
 스프링MVC 소셜네트워크(SNS) 사이트
 
 ## 프로젝트 소개
